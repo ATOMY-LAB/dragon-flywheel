@@ -288,6 +288,12 @@ footer a{color:var(--text-muted)}
 </section>
 
 <section>
+  <h2 id="sec-unit-title"></h2>
+  <div class="tbl-wrap" id="unitTable"></div>
+  <p style="font-size:12px;color:var(--text-muted);margin:8px 2px 0" id="unitNote"></p>
+</section>
+
+<section>
   <h2 id="sec-qa-title"></h2>
   <div id="qaList"></div>
 </section>
@@ -358,6 +364,20 @@ zh: {
     ['hl|<b>ePaddle</b>','<b>¥299.9</b>','<b>力曲线 + 9轴姿态 + 速度/角度</b>','<b>¥588/年（¥49/月）</b>','<b>✓ 全员同步 + 自动座位分配</b>']
   ],
   compNote: '战略空白：现有传感器仅测量频率（Vaaka、NK）或个人发力（PaddleMate），无一测量多人艇中的队员间同步。这一空白即 ePaddle 的定位。',
+  secUnit: '单位经济学',
+  secUnitSmall: '单支设备口径',
+  unitHeaders: ['项目','数值'],
+  unitRows: [
+    ['硬件售价','¥299.9'],
+    ['年订阅','¥588（¥49/月）'],
+    ['hl|<b>首年客户价值</b>','<b>¥888</b>'],
+    ['制造成本','¥200（目标）'],
+    ['服务器成本','¥100'],
+    ['毛利率（第一年）','~60.5%'],
+    ['hl|<b>毛利率（第二年起）</b>','<b>83%</b>'],
+    ['获客成本（CAC）','¥200–300']
+  ],
+  unitNote: 'CAC 按线下触达22人整队计算，折合每位划手约¥10–14，对应¥888首年客户价值。',
   secQA: '尖锐问答',
   secQASmall: '',
   qa: [
@@ -448,6 +468,20 @@ en: {
     ['hl|<b>ePaddle</b>','<b>¥299.9</b>','<b>Force curve + 9-axis form + speed/angle</b>','<b>¥588/yr (¥49/mo)</b>','<b>✓ crew sync + auto seat allocation</b>']
   ],
   compNote: 'Strategic gap: existing sensors measure either frequency (Vaaka, NK) or individual force (PaddleMate) — none measure cross-paddler synchronization in a multi-person boat. That gap is ePaddle\'s positioning.',
+  secUnit: 'Unit economics',
+  secUnitSmall: 'per-device basis',
+  unitHeaders: ['Item','Value'],
+  unitRows: [
+    ['Hardware price','¥299.9'],
+    ['Annual subscription','¥588 (¥49/mo)'],
+    ['hl|<b>1st-year customer value</b>','<b>¥888</b>'],
+    ['Manufacturing cost','¥200 (target)'],
+    ['Server cost','¥100'],
+    ['Gross margin (Year 1)','~60.5%'],
+    ['hl|<b>Gross margin (Year 2+)</b>','<b>83%</b>'],
+    ['CAC','¥200–300']
+  ],
+  unitNote: 'CAC is measured per 22-person team reached offline — roughly ¥10–14 per paddler against the ¥888 first-year customer value.',
   secQA: 'Hard questions',
   secQASmall: '',
   qa: [
@@ -551,6 +585,18 @@ function renderAll(lang) {
     }).join('')}</tbody>
   </table>`;
   document.getElementById('compNote').textContent = d.compNote;
+
+  // Unit economics table
+  document.getElementById('sec-unit-title').innerHTML = `${d.secUnit} <small>${d.secUnitSmall}</small>`;
+  document.getElementById('unitTable').innerHTML = `<table>
+    <thead><tr>${d.unitHeaders.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${d.unitRows.map(r => {
+      const isHL = r[0].startsWith('hl|');
+      const cells = isHL ? [r[0].slice(3), ...r.slice(1)] : r;
+      return `<tr${isHL ? ' class="hl"' : ''}><td>${cells[0]}</td><td class="num">${cells[1]}</td></tr>`;
+    }).join('')}</tbody>
+  </table>`;
+  document.getElementById('unitNote').textContent = d.unitNote;
 
   // Hard questions
   document.getElementById('sec-qa-title').innerHTML = `${d.secQA} <small>${d.secQASmall}</small>`;
