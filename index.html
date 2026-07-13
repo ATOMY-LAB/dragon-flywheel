@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ePaddle · 龙舟数据飞轮</title>
+<style>
+:root{
+  --page:#f9f9f7; --surface-1:#fcfcfb;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#898781;
+  --border:rgba(11,11,11,.10); --border-strong:#c3c2b7; --grid:#e1e0d9;
+  --r1:#2a78d6; --r2:#1baf7a; --r3:#eda100; --r4:#008300; --r5:#4a3aa7; --r6:#e34948;
+  --edge:#a3a29a;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --page:#0d0d0d; --surface-1:#1a1a19;
+    --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#898781;
+    --border:rgba(255,255,255,.10); --border-strong:#383835; --grid:#2c2c2a;
+    --r1:#3987e5; --r2:#199e70; --r3:#c98500; --r4:#008300; --r5:#9085e9; --r6:#e66767;
+    --edge:#6b6a64;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text-primary);
+  font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.5}
+.page{max-width:1080px;margin:0 auto;padding:32px 24px 64px}
+
+/* header + lang toggle */
+header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px}
+header .hdr-left{flex:1;min-width:280px}
+header .hdr-left h1{font-size:26px;font-weight:650;margin:0 0 4px;letter-spacing:-.01em}
+header .hdr-left p{margin:0;font-size:14px;color:var(--text-secondary)}
+header .hdr-left .src{font-size:12px;color:var(--text-muted);margin-top:4px}
+.lang-toggle{display:flex;border:1px solid var(--border);border-radius:20px;overflow:hidden;flex-shrink:0}
+.lang-btn{font-size:12px;font-weight:500;padding:5px 14px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;font-family:inherit;transition:background .15s,color .15s}
+.lang-btn.active{background:var(--text-primary);color:var(--page);font-weight:600}
+.lang-btn:not(.active):hover{color:var(--text-secondary)}
+
+section{margin-top:36px}
+h2{font-size:16px;font-weight:600;margin:0 0 12px}
+h2 small{font-weight:400;color:var(--text-muted);font-size:12px;margin-left:8px}
+
+/* stat strip */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:20px}
+.stat{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font-size:22px;font-weight:650;letter-spacing:-.01em}
+.stat span{font-size:12px;color:var(--text-secondary)}
+
+/* ring carousel (header row of the info panel) */
+.info-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--grid)}
+.nav-btn{width:30px;height:30px;flex:none;border-radius:50%;border:1px solid var(--border);background:transparent;
+  color:var(--text-secondary);font-size:17px;line-height:27px;text-align:center;padding:0;cursor:pointer;font-family:inherit;
+  transition:border-color .15s,color .15s,background .15s}
+.nav-btn:hover{border-color:var(--rc,var(--border-strong));color:var(--text-primary);
+  background:color-mix(in srgb,var(--rc,var(--border-strong)) 8%,transparent)}
+.info-title{flex:1;min-width:0;font-size:14px;font-weight:650;color:var(--text-primary);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.info-title .rn{color:var(--rc,var(--text-muted));font-size:11.5px;font-weight:600;margin-right:7px;letter-spacing:.03em}
+.info-title .re{font-weight:400;color:var(--text-muted);font-size:11.5px;margin-left:8px}
+.nav-btn.on{border-color:var(--rc,var(--border-strong));color:var(--text-primary);
+  background:color-mix(in srgb,var(--rc,var(--border-strong)) 12%,transparent)}
+
+/* info panel */
+.info-panel{font-size:13.5px;line-height:1.65;color:var(--text-secondary);min-height:96px;
+  margin:0 0 14px;padding:14px 18px;background:var(--surface-1);border-radius:12px;
+  border:1px solid var(--border);border-left:3px solid var(--rc,var(--border-strong))}
+.info-panel b{color:var(--text-primary);font-weight:600}
+.info-panel .case{font-size:12.5px;color:var(--text-muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--grid)}
+
+/* svg */
+.fw-svg{width:100%;height:auto;display:block;background:var(--surface-1);
+  border:1px solid var(--border);border-radius:14px}
+.node-main{transition:opacity .25s;cursor:pointer}
+.node-main.dim{opacity:.15}
+.node-main rect{transition:stroke .25s}
+.edge{transition:opacity .25s,stroke .25s}
+.edge.dim{opacity:.08}
+.legend-row{display:flex;flex-wrap:wrap;gap:16px;margin-top:10px;font-size:11.5px;color:var(--text-muted)}
+.legend-row svg{vertical-align:-2px;margin-right:4px}
+
+/* eco cards */
+.eco-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.eco-card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:12.5px;line-height:1.55}
+.eco-card b{display:block;font-weight:600;font-size:13px;margin-bottom:5px;color:var(--text-primary)}
+.eco-card span{color:var(--text-secondary)}
+.eco-card em{font-style:normal;font-weight:600;color:var(--text-primary)}
+
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface-1);
+  border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.tbl-wrap{overflow-x:auto;border-radius:12px}
+th{text-align:left;font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--text-muted);padding:9px 12px;border-bottom:1px solid var(--grid)}
+td{padding:9px 12px;border-bottom:1px solid var(--grid);color:var(--text-secondary);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td b{color:var(--text-primary);font-weight:600}
+tr.hl td{background:color-mix(in srgb,var(--r1) 7%,var(--surface-1))}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* deck map ring chips */
+.chip{display:inline-block;font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px;
+  cursor:pointer;margin:1px 2px 1px 0;border:1px solid transparent;white-space:nowrap;
+  color:var(--text-primary);
+  background:color-mix(in srgb,var(--rc) 14%,var(--surface-1));border-color:color-mix(in srgb,var(--rc) 45%,transparent)}
+.chip.neutral{background:var(--surface-1);border-color:var(--border);color:var(--text-muted);cursor:default;font-weight:450}
+
+/* hard questions */
+.qa-item{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:8px;font-size:13px;line-height:1.65;color:var(--text-secondary)}
+.qa-item .q{display:block;font-weight:600;color:var(--text-primary);margin-bottom:6px}
+
+footer{margin-top:44px;font-size:11.5px;color:var(--text-muted);border-top:1px solid var(--grid);padding-top:14px}
+footer a{color:var(--text-muted)}
+
+/* svg center ring cards */
+.fw-card{cursor:pointer;transition:opacity .25s}
+.fw-card.dim{opacity:.3}
+.fw-card .fc-bg{transition:stroke-width .2s,fill .2s}
+.fw-card text{pointer-events:none}
+
+@media print{
+  body{background:#fff}
+  .page{max-width:none;padding:0}
+  .lang-toggle,.nav-btn{display:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="hdr-left">
+    <h1 id="hdr-title"></h1>
+    <p id="hdr-sub"></p>
+    <div class="src" id="hdr-src"></div>
+  </div>
+  <div class="lang-toggle" id="langToggle">
+    <button class="lang-btn active" data-lang="zh">中文</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+  </div>
+</header>
+
+<div class="stats" id="stats"></div>
+
+<section>
+  <h2 id="sec-fw-title"></h2>
+  <div class="info-panel" id="infoPanel">
+    <div class="info-head">
+      <button class="nav-btn" id="navPrev" aria-label="Previous ring">‹</button>
+      <div class="info-title" id="infoTitle"></div>
+      <button class="nav-btn" id="tourBtn" aria-label="Auto tour">▶</button>
+      <button class="nav-btn" id="navNext" aria-label="Next ring">›</button>
+    </div>
+    <div class="info-body" id="info"></div>
+  </div>
+
+  <svg class="fw-svg" viewBox="0 0 680 470" role="img" aria-labelledby="fw-title fw-desc">
+    <title id="fw-title">ePaddle Dragon Boat Data Flywheel</title>
+    <desc id="fw-desc"></desc>
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="var(--edge)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      <marker id="arr1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="var(--r1)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+      <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="var(--r2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+      <marker id="arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="var(--r3)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+      <marker id="arr4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="var(--r4)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+      <marker id="arr5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="var(--r5)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+      <marker id="arr6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="var(--r6)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    </defs>
+
+    <!-- edges: main clockwise flow -->
+    <line class="edge" data-rings="1,6" x1="172" y1="47" x2="226" y2="47" stroke="var(--edge)" stroke-width="1.2" marker-end="url(#arr)"/>
+    <line class="edge" data-rings="1"   x1="362" y1="47" x2="426" y2="47" stroke="var(--edge)" stroke-width="1.2" marker-end="url(#arr)"/>
+    <path class="edge" data-rings="1"   d="M535 74 Q575 95 598 128" fill="none" stroke="var(--edge)" stroke-width="1.2" marker-end="url(#arr)"/>
+    <line class="edge" data-rings="2"   x1="605" y1="184" x2="605" y2="240" stroke="var(--edge)" stroke-width="1.2" marker-end="url(#arr)"/>
+    <path class="edge" data-rings="3"   d="M585 294 Q560 320 524 342" fill="none" stroke="var(--edge)" stroke-width="1.2" marker-end="url(#arr)"/>
+    <line class="edge" data-rings="3"   x1="388" y1="382" x2="326" y2="400" stroke="var(--edge)" stroke-width="1.2" marker-end="url(#arr)"/>
+    <path class="edge" data-rings="4"   d="M192 408 Q170 388 158 358" fill="none" stroke="var(--edge)" stroke-width="1.2" marker-end="url(#arr)"/>
+    <path class="edge" data-rings="4,6" d="M62 298 L62 78" fill="none" stroke="var(--edge)" stroke-width="1.2" marker-end="url(#arr)"/>
+    <!-- edges: dashed cross-links -->
+    <path class="edge" data-rings="4,6" d="M148 300 Q230 180 282 78" fill="none" stroke="var(--edge)" stroke-width="1.2" stroke-dasharray="5 4" marker-end="url(#arr)" opacity=".55"/>
+    <path class="edge" data-rings="5"   d="M154 200 Q360 220 536 260" fill="none" stroke="var(--edge)" stroke-width="1.2" stroke-dasharray="5 4" marker-end="url(#arr)" opacity=".55"/>
+    <path class="edge" data-rings="5"   d="M212 378 Q160 300 122 222" fill="none" stroke="var(--edge)" stroke-width="1.2" stroke-dasharray="5 4" marker-end="url(#arr)" opacity=".55"/>
+
+    <!-- nodes -->
+    <g class="node-main" data-rings="1,6" id="n0">
+      <rect x="40" y="22" width="132" height="52" rx="9" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="1"/>
+      <text x="106" y="41" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="var(--text-primary)"></text>
+      <text x="106" y="58" text-anchor="middle" dominant-baseline="central" font-size="10.5" fill="var(--text-secondary)"></text>
+    </g>
+    <g class="node-main" data-rings="1,2,6" id="n1">
+      <rect x="230" y="22" width="132" height="52" rx="9" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="1"/>
+      <text x="296" y="41" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="var(--text-primary)"></text>
+      <text x="296" y="58" text-anchor="middle" dominant-baseline="central" font-size="10.5" fill="var(--text-secondary)"></text>
+    </g>
+    <g class="node-main" data-rings="1" id="n2">
+      <rect x="430" y="22" width="132" height="52" rx="9" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="1"/>
+      <text x="496" y="41" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="var(--text-primary)"></text>
+      <text x="496" y="58" text-anchor="middle" dominant-baseline="central" font-size="10.5" fill="var(--text-secondary)"></text>
+    </g>
+    <g class="node-main" data-rings="1,2,4" id="n3">
+      <rect x="540" y="132" width="132" height="52" rx="9" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="1"/>
+      <text x="606" y="151" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="var(--text-primary)"></text>
+      <text x="606" y="168" text-anchor="middle" dominant-baseline="central" font-size="10.5" fill="var(--text-secondary)"></text>
+    </g>
+    <g class="node-main" data-rings="2,3,5" id="n4">
+      <rect x="540" y="242" width="132" height="52" rx="9" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="1"/>
+      <text x="606" y="261" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="var(--text-primary)"></text>
+      <text x="606" y="278" text-anchor="middle" dominant-baseline="central" font-size="10.5" fill="var(--text-secondary)"></text>
+    </g>
+    <g class="node-main" data-rings="3" id="n5">
+      <rect x="392" y="344" width="176" height="52" rx="9" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="1"/>
+      <text x="480" y="363" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="var(--text-primary)"></text>
+      <text x="480" y="380" text-anchor="middle" dominant-baseline="central" font-size="10.5" fill="var(--text-secondary)"></text>
+    </g>
+    <g class="node-main" data-rings="3,4,5" id="n6">
+      <rect x="192" y="384" width="132" height="52" rx="9" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="1"/>
+      <text x="258" y="403" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="var(--text-primary)"></text>
+      <text x="258" y="420" text-anchor="middle" dominant-baseline="central" font-size="10.5" fill="var(--text-secondary)"></text>
+    </g>
+    <g class="node-main" data-rings="4,6" id="n7">
+      <rect x="20" y="302" width="140" height="52" rx="9" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="1"/>
+      <text x="90" y="321" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="var(--text-primary)"></text>
+      <text x="90" y="338" text-anchor="middle" dominant-baseline="central" font-size="10.5" fill="var(--text-secondary)"></text>
+    </g>
+    <g class="node-main" data-rings="5" id="n8">
+      <rect x="12" y="160" width="140" height="56" rx="9" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="1"/>
+      <text x="82" y="180" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="600" fill="var(--text-primary)"></text>
+      <text x="82" y="198" text-anchor="middle" dominant-baseline="central" font-size="10.5" fill="var(--text-secondary)"></text>
+    </g>
+
+    <!-- center ring cards -->
+    <g class="fw-card" data-r="0" transform="translate(265,112)">
+      <rect class="fc-bg" width="150" height="30" rx="7" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="1"/>
+      <text class="fc-t" x="75" y="15.5" text-anchor="middle" dominant-baseline="central" font-size="11" font-weight="600" fill="var(--text-primary)"></text>
+    </g>
+    <g class="fw-card" data-r="1" transform="translate(184,152)">
+      <rect class="fc-bg" width="150" height="30" rx="7" fill="var(--surface-1)" stroke="var(--r1)" stroke-width="1"/>
+      <circle cx="15" cy="15" r="4.5" fill="var(--r1)"/>
+      <text class="fc-n" x="25" y="15.5" dominant-baseline="central" font-size="9.5" font-weight="600" fill="var(--r1)">R1</text>
+      <text class="fc-t" x="45" y="15.5" dominant-baseline="central" font-size="11" font-weight="600" fill="var(--text-primary)"></text>
+    </g>
+    <g class="fw-card" data-r="2" transform="translate(352,152)">
+      <rect class="fc-bg" width="150" height="30" rx="7" fill="var(--surface-1)" stroke="var(--r2)" stroke-width="1"/>
+      <circle cx="15" cy="15" r="4.5" fill="var(--r2)"/>
+      <text class="fc-n" x="25" y="15.5" dominant-baseline="central" font-size="9.5" font-weight="600" fill="var(--r2)">R2</text>
+      <text class="fc-t" x="45" y="15.5" dominant-baseline="central" font-size="11" font-weight="600" fill="var(--text-primary)"></text>
+    </g>
+    <g class="fw-card" data-r="3" transform="translate(184,192)">
+      <rect class="fc-bg" width="150" height="30" rx="7" fill="var(--surface-1)" stroke="var(--r3)" stroke-width="1"/>
+      <circle cx="15" cy="15" r="4.5" fill="var(--r3)"/>
+      <text class="fc-n" x="25" y="15.5" dominant-baseline="central" font-size="9.5" font-weight="600" fill="var(--r3)">R3</text>
+      <text class="fc-t" x="45" y="15.5" dominant-baseline="central" font-size="11" font-weight="600" fill="var(--text-primary)"></text>
+    </g>
+    <g class="fw-card" data-r="4" transform="translate(352,192)">
+      <rect class="fc-bg" width="150" height="30" rx="7" fill="var(--surface-1)" stroke="var(--r4)" stroke-width="1"/>
+      <circle cx="15" cy="15" r="4.5" fill="var(--r4)"/>
+      <text class="fc-n" x="25" y="15.5" dominant-baseline="central" font-size="9.5" font-weight="600" fill="var(--r4)">R4</text>
+      <text class="fc-t" x="45" y="15.5" dominant-baseline="central" font-size="11" font-weight="600" fill="var(--text-primary)"></text>
+    </g>
+    <g class="fw-card" data-r="5" transform="translate(184,232)">
+      <rect class="fc-bg" width="150" height="30" rx="7" fill="var(--surface-1)" stroke="var(--r5)" stroke-width="1"/>
+      <circle cx="15" cy="15" r="4.5" fill="var(--r5)"/>
+      <text class="fc-n" x="25" y="15.5" dominant-baseline="central" font-size="9.5" font-weight="600" fill="var(--r5)">R5</text>
+      <text class="fc-t" x="45" y="15.5" dominant-baseline="central" font-size="11" font-weight="600" fill="var(--text-primary)"></text>
+    </g>
+    <g class="fw-card" data-r="6" transform="translate(352,232)">
+      <rect class="fc-bg" width="150" height="30" rx="7" fill="var(--surface-1)" stroke="var(--r6)" stroke-width="1"/>
+      <circle cx="15" cy="15" r="4.5" fill="var(--r6)"/>
+      <text class="fc-n" x="25" y="15.5" dominant-baseline="central" font-size="9.5" font-weight="600" fill="var(--r6)">R6</text>
+      <text class="fc-t" x="45" y="15.5" dominant-baseline="central" font-size="11" font-weight="600" fill="var(--text-primary)"></text>
+    </g>
+  </svg>
+
+  <div class="legend-row" id="legend"></div>
+</section>
+
+<section>
+  <h2 id="sec-eco-title"></h2>
+  <div class="eco-row" id="ecoCards"></div>
+</section>
+
+<section>
+  <h2 id="sec-comp-title"></h2>
+  <div class="tbl-wrap" id="compTable"></div>
+  <p style="font-size:12px;color:var(--text-muted);margin:8px 2px 0" id="compNote"></p>
+</section>
+
+<section>
+  <h2 id="sec-qa-title"></h2>
+  <div id="qaList"></div>
+</section>
+
+<footer id="footer"></footer>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// I18N DATA
+// ═══════════════════════════════════════
+const I18N = {
+zh: {
+  pageTitle: 'ePaddle · 龙舟数据飞轮',
+  headerSub: '六大增长飞轮（训练诊断、竞技均势、内容与观众、参与漏斗、商业收入）运行于同一数据生态之上。',
+  headerSrc: '单页参考 · 2026年7月',
+  fwTitle: 'ePaddle 龙舟数据飞轮',
+  fwDesc: '九个节点顺时针相连，外加三条虚线跨链，构成龙舟及水上运动的数据驱动增长引擎。',
+  stats: [
+    {v:'5,000万',l:'全球龙舟参与者'},
+    {v:'900万',l:'年均桨叶更换量'},
+    {v:'¥888',l:'首年客户价值（¥299.9硬件 + ¥588订阅）'},
+    {v:'1,000+',l:'社区运动员，零营销支出'},
+    {v:'83%',l:'第二年起毛利率'}
+  ],
+  ringBtns: [
+    {n:'',zh:'总览',en:'Overview'},
+    {n:'R1',zh:'训练诊断',en:'Training diagnosis'},
+    {n:'R2',zh:'竞技均势',en:'Competitive parity'},
+    {n:'R3',zh:'内容与观众',en:'Content & audience'},
+    {n:'R4',zh:'参与漏斗',en:'Participation funnel'},
+    {n:'R5',zh:'商业收入',en:'Commercial revenue'},
+    {n:'R6',zh:'数据生态',en:'Data ecosystem'}
+  ],
+  secFlywheel: '飞轮全景',
+  secFlywheelSmall: '点击环或节点聚焦单环',
+  svgNodes: [
+    {p:'智能桨硬件',s:'9轴IMU + 应变片'},
+    {p:'运动数据',s:'功率 · 角度 · 同步'},
+    {p:'教练诊断',s:'数据 → 针对性方案'},
+    {p:'成绩提升',s:'运动员进步'},
+    {p:'精彩赛事',s:'均势↑ · 更替率↑'},
+    {p:'内容创作',s:'社交 · 直播 · 线下'},
+    {p:'观众增长',s:'粉丝 · 观众'},
+    {p:'新参与者',s:'加入俱乐部 · 购买装备'},
+    {p:'收入',s:'硬件 · SaaS · 赞助'}
+  ],
+  legend: [
+    '<svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="var(--edge)" stroke-width="1.5"/></svg>实线 = 顺时针主流程',
+    '<svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="var(--edge)" stroke-width="1.5" stroke-dasharray="5 4"/></svg>虚线 = 跨链',
+    '点击节点跳转至其主环'
+  ],
+  secEcosystem: '数据生态',
+  secEcosystemSmall: '支撑全部六环的基础设施层（第六环）',
+  ecoCards: [
+    {t:'硬件层',b:'Vaaka（桨频）· PaddleMate（力曲线）· NK SpeedCoach（船速）· Garmin（心率）· <em>ePaddle</em>，唯一测量全船队员发力×时机的设备'},
+    {t:'软件层',b:'教练数据看板 · 运动员进度App含划桨回放 · AI教练（从最大弱点生成训练方案）· 团队模式含自动座位分配 · 面向粉丝的数据可视化'},
+    {t:'数据层',b:'原始传感器数据 → 处理后指标 → 跨队基准 → 内容叙事 → 标准化统计数据。更多用户 → 更多数据 → 更好算法 → 更高价值 → 更多用户。'}
+  ],
+  secCompetitor: '竞品一览',
+  secCompetitorSmall: '竞品对比与单位经济学',
+  compHeaders: ['设备','硬件价格','采集数据','软件','全员同步'],
+  compRows: [
+    ['<b>Vaaka</b>','US$225','SPM, DPS（单IMU）','免费','—'],
+    ['<b>NK Sports</b>','¥1,586–3,559','GPS, SPM, DPS','US$100/年','—'],
+    ['<b>PaddleMate</b>','€150–650','Force + SPM, DPS + GPS','€100–150/年','—'],
+    ['hl|<b>ePaddle</b>','<b>¥299.9</b>','<b>力曲线 + 9轴姿态 + 速度/角度</b>','<b>¥588/年（¥49/月）</b>','<b>✓ 全员同步 + 自动座位分配</b>']
+  ],
+  compNote: '战略空白：现有传感器仅测量频率（Vaaka、NK）或个人发力（PaddleMate），无一测量多人艇中的队员间同步。这一空白即 ePaddle 的定位。',
+  secQA: '尖锐问答',
+  secQASmall: '',
+  qa: [
+    {q:'谁感到痛？谁决策？谁买单？',
+     a:'教练是我们的理想客户画像（ICP）和首批用户：一位教练每天带1–2场训练，执教约40名运动员，而除了分配不同的陆上训练方案外，没有任何真正的个性化训练。教练感到痛并做出决策，划手买单。这种分离不是冲突而是渠道：教练数据看板是钩子，说服一位教练就等于通过口碑打开了约40位划手的钱包。我们的500名实地测试者正是这样来的：25支队伍，其中数支共享教练。'},
+    {q:'同步需要全船，最小订单岂不就是20支？',
+     a:'不是。两支就够。两支传感器就足以让教练开展基于数据的选人排位：直接测量个体功率差异，而非用陆上力量测试来间接替代。四支（每侧两支）即可解析每位划手对船速和航向的贡献，部署数量越多价值越大，直到覆盖全船。商业动作是"楔入—扩展"：从¥600的楔子切入，最终覆盖22座全船。获客方面：¥200–300是线下触达整支队伍的成本，这是按队计算的CAC，折合每位划手仅约¥10–14，对应¥888的首年客户价值。俱乐部以队伍别名为单位批量管理设备；个人购买则自行管理。'},
+    {q:'扣除水分后，市场到底有多大？',
+     a:'坦率拆成两种打法。在中国及东南亚，桨多为俱乐部所有，本土滩头阵地因此是教练主导的整队采购；中国及东南亚以外，运动员自备桨，零售逻辑。赛季真实存在：广东春节后开训、赛事延续至10月，中位数队伍每周训练2.5次、每次1.5小时。用原始数据说话：接触的15位教练中13位已转化；已与俱乐部实体签署意向书（LOI）；已收取可退定金，在具备规模化量产能力前主动暂缓全额收款。'},
+    {q:'PaddleMate为什么不能下个季度用固件更新做出同样的功能？',
+     a:'同步他们能做；我们的市场他们做不了。PaddleMate为北美而生，22人龙舟在那里是非常小众的场景；其粉末冶金机身以特种胶水永久粘在桨上，等于功能性毁桨（不再符合比赛规则），为一个无法触达的亚洲社群重新设计产品在商业上并不理性。我们诚实的护城河排序：(1) 教练体验：100+台设备在一台iPad上实时同步；(2) 在一个靠口碑驱动的运动中，最强的线下渠道能力；(3) 持续复利的多人艇基准数据集，再加上不损伤桨体、符合赛规的安装方式。深圳一支RoboMaster团队六个月能复刻出电子部分；渠道和数据集，他们做不到。'},
+    {q:'龙舟增长了，凭什么是ePaddle捕获价值，而不是联合会？',
+     a:'因为我们直接嵌入"管水的人"，而不是等联合会来推动。私营侧：与珠海最大的民营赛事运营方合作（包括珠海意诚格物），以及龙舟数字化装备制造商广东吕顺智能科技；公共侧：与深圳大鹏新区创新局合作。政策支持为我们提供了覆盖产品全生命周期的三条河道：香港城门河用于训练，深圳大鹏用于大规模测试验证，珠海横琴天沐河用于赛事场景。'},
+    {q:'团队里谁完整走过消费硬件的开模、认证和质保季？',
+     a:'目前还没有。本轮融资的用途之一正是补上这块能力。已经验证的是：这支团队能在高压下交付并取胜：项目从零组队起步于香港InnoX 2026冬令营并获评最佳项目（Best Project）；随后在澳门BEYOND Expo的Fund At First Pitch中从1,200+家初创企业跻身六强，评委团（包括湖人队球星慈世平 Metta World Peace 与 Crunchyroll 创始人 Kun Gao）给出850万美元的参考估值中位数。这正是我们只招募有实战竞赛经验的成员的原因：只有赢家才真正理解赢家。'},
+    {q:'100万港币究竟能推到哪一个数字？',
+     a:'五十支队伍从2支楔子订单扩展到全船配置，且俱乐部在一个完整赛季结束后续订，按标准22座船员计算，约等于一年内10倍销量增长。单这一个数字同时证明"楔子→全船"的扩展动作成立，并回答季节性流失的质疑。这正是下一轮投资人要定价的核心指标。'}
+  ],
+  footer: '<b>数据来源与参考：</b><br>'+
+    '· SailGP — 每艘F50配备<a href="https://sailgp.com/news/25/2025-season-most-technologically-advanced-sailing-history/">125个传感器</a>，每船每秒采集<a href="https://sailgp.com/news/25/2025-season-most-technologically-advanced-sailing-history/">~35,000个数据点</a>（船队总计 Oracle Cloud 上 240K+/秒），2025年收入<a href="https://www.sportsbusinessjournal.com/Articles/2025/12/10/sailgp-tops-200m-in-revenue-reaches-new-highs-in-attendance-viewership/">超$200M</a>（约为第一赛季的20×），<a href="https://sailgp.com/news/24/sailgp-offer-livelinefx-graphics-sports-properties-rights-owners/">LiveLineFX 获 Emmy 奖</a><br>'+
+    '· NBA — 2013-14赛季起 SportVU 光学追踪覆盖全部30座球馆，2017-18赛季起 Second Spectrum 接替为官方追踪供应商，Jr. NBA 参与漏斗 · <a href="https://en.wikipedia.org/wiki/Player_tracking_(National_Basketball_Association)">SportVU 始于2013-14赛季</a>；Second Spectrum 始于2017-18赛季<br>'+
+    '· 佛山/广州 — 2025年端午期间 Fliggy 入境预订<a href="https://www.scmp.com/economy/china-economy/article/3357555/china-sees-surge-dragon-boat-tourism-foreign-interest-festival-grows">同比增长超600%</a>，酒店搜索量+210%<br>'+
+    '· IDBF 全球龙舟参与者约5,000万；桨叶制造商一手数据',
+  infos: {
+0:'<b>总览：六大环环相扣</b><br>飞轮从智能硬件（ePaddle 传感器桨）起步，产生运动数据，依次流经训练、竞赛、内容、观众与参与，形成自我强化的增长循环。数据生态（硬件 + 软件 + 数据标准）是驱动全部六环的基础设施层。虚线箭头为跨链连接：更多参与者反哺更多数据；观众推动收入；收入资助更多赛事。',
+1:'<b>第一环 · 训练诊断（B2B核心）</b> — 传感器 → 个人数据 → 教练诊断 → 针对性方案 → 成绩提升 → 更多队伍采用 → 更多数据 → 更好算法。<br>解决的核心问题是<b>二体问题</b>：每次训练20+划手，教练凭经验判断，运动员凭感觉训练，陆→水过渡中约30%功率损失于不可见的技术细节。ePaddle 的答案：个人模式（实时速度/功率/角度、逐桨回放、AI反馈、AI教练）和团队模式（全员同步视图、自动座位分配）。<br><b>利益相关方：</b>教练、运动员、装备制造商、学校/高校。<div class="case"><b>SailGP 对照：</b>每队赛后使用 Oracle 数据看板进行战术复盘。<b>NBA 对照：</b>Second Spectrum 追踪 → 教练组分析。此环为切入点。</div>',
+2:'<b>第二环 · 竞技均势</b> — 数据民主化 → 弱队学得更快 → 差距缩小 → 冠军更替率↑ → 赛事更精彩 → 观众↑。<br><b>利益相关方：</b>赛事联合会（IDBF, CDBF）、所有队伍、赛事组织方。<div class="case"><b>SailGP 对照：</b>开放数据政策：每队可查看所有队伍的数据；第5赛季共12支队伍（首届6支的2倍），第6赛季扩至13支。<b>NBA 对照：</b>工资帽 + 选秀抽签创造结构性均势。龙舟的优势：船体已标准化（如同F50），缺失的是跨队可比数据。</div>',
+3:'<b>第三环 · 内容与观众</b> — 数据可视化赋能三条分发渠道：<br>• <b>社交：</b>抖音/TikTok/小红书上的短数据视频（佛山"龙舟漂移"病毒传播模式 + 数据叠加）<br>• <b>直播：</b>电视/流媒体配AR数据层（SailGP LiveLine、NBA增强直播）<br>• <b>线下：</b>节日大屏、校园开放日、企业团建配实时数据墙<br><b>利益相关方：</b>媒体/内容创作者、转播商、旅游局、赞助商。<div class="case">SailGP 的 LiveLine 让不可见的风变得可见，并获 Emmy 奖。ePaddle 的对应：让不可见的个人发力变得可见。</div>',
+4:'<b>第四环 · 参与漏斗</b> — 观众 → 兴趣 → 尝试龙舟（俱乐部/企业活动）→ 加入队伍 → 训练 → 产生数据 → 回到第一环。<br>ePaddle 5个月上市验证了漏斗：1,000+ 社区运动员、500+ 实地测试含国家队代表（港/澳/台）、亚太精英俱乐部批量采购、7所高校合作伙伴、与残障运动员合作，零营销支出。<br><b>利益相关方：</b>高校、培训学院、社区俱乐部、新划手。<div class="case"><b>NBA 对照：</b>Jr. NBA、NBA 2K 虚拟漏斗。<b>SailGP 对照：</b>Inspire 青少年计划。二者不具备的独特资产：端午节文化纽带，每年数百万人现场观看。</div>',
+5:'<b>第五环 · 商业收入</b> — 更多赛事 + 参与者 + 观众 → 多元收入流 → 再投资。<br>• 硬件：¥299.9/支，对标900万支年桨叶更换周期和5,000万参与者<br>• 数据 SaaS：¥588/年（¥49/月）→ 首年客户价值 ¥888，毛利率 ~60.5% Y1，83% Y2+，获客成本 ¥200–300<br>• 赞助、文旅（佛山/广州：端午入境预订同比+600%以上）、媒体权益长期收入<br><b>利益相关方：</b>赞助商、地方政府/旅游局、制造商、酒店业。<div class="case">SailGP 2025年收入超$200M，约为第一赛季的20倍，飞轮复利效应。</div>',
+6:'<b>第六环 · 数据生态（基础设施层）</b> — 更多用户 → 更多数据 → 更好算法/基准 → 更高价值 → 更多用户。支撑全部其他环。<br><b>ePaddle 技术：</b>9轴IMU测姿态 + 4D应变片测功率，无需在身体贴17个传感器即可实现全运动捕捉。服务器编排、蓝牙即时连接、本地记录、手机回放。<br><b>战略空白：</b>Vaaka/NK 测频率，PaddleMate 测个人发力，无一测量队员间同步。这一定位空白即护城河。<br><b>扩展：</b>游泳（划臂位移穿戴）、赛艇/全桨类（全员力曲线同步）、滑雪（压力+角度）。<div class="case">SailGP：每艘F50 125个传感器，每船每秒~35K数据点运行于 Oracle Cloud。NBA：2013-14赛季起光学追踪覆盖全部球馆，Second Spectrum 自2017-18赛季起为官方供应商。</div>'
+  }
+},
+en: {
+  pageTitle: 'ePaddle · Dragon Boat Data Flywheel',
+  headerSub: 'Six interlocking growth loops (training diagnosis, competitive parity, content & audience, participation funnel, commercial revenue) running on one data ecosystem.',
+  headerSrc: 'One-page reference · July 2026',
+  fwTitle: 'ePaddle Dragon Boat Data Flywheel',
+  fwDesc: 'Nine stations connected in a clockwise loop with three dashed cross-links, forming the data-driven growth engine for dragon boat and water sports.',
+  stats: [
+    {v:'50M',l:'global practitioners '},
+    {v:'9M',l:'paddles turned over per year'},
+    {v:'¥888',l:'first-year customer value (¥299.9 hw + ¥588 sub)'},
+    {v:'1,000+',l:'athletes in community, $0 marketing'},
+    {v:'83%',l:'gross margin from year 2+'}
+  ],
+  ringBtns: [
+    {n:'',zh:'总览',en:'Overview'},
+    {n:'R1',zh:'训练诊断',en:'Training diagnosis'},
+    {n:'R2',zh:'竞技均势',en:'Competitive parity'},
+    {n:'R3',zh:'内容与观众',en:'Content & audience'},
+    {n:'R4',zh:'参与漏斗',en:'Participation funnel'},
+    {n:'R5',zh:'商业收入',en:'Commercial revenue'},
+    {n:'R6',zh:'数据生态',en:'Data ecosystem'}
+  ],
+  secFlywheel: 'The flywheel',
+  secFlywheelSmall: 'flip through rings with ‹ › or ← → keys · ▶ runs an auto tour · click any node or card to jump',
+  svgNodes: [
+    {p:'ePaddle hardware',s:'9-axis IMU + strain gauge'},
+    {p:'Performance data',s:'Power · angle · sync'},
+    {p:'Coach diagnosis',s:'Data → targeted plan'},
+    {p:'Performance ↑',s:'Athletes get better'},
+    {p:'Exciting races',s:'Parity ↑ · turnover ↑'},
+    {p:'Content creation',s:'Social · Broadcast · Offline'},
+    {p:'Audience growth',s:'Fans · spectators'},
+    {p:'New participants',s:'Join clubs · buy gear'},
+    {p:'Revenue',s:'Hardware · SaaS · sponsors'}
+  ],
+  legend: [
+    '<svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="var(--edge)" stroke-width="1.5"/></svg>Solid = main clockwise flow',
+    '<svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="var(--edge)" stroke-width="1.5" stroke-dasharray="5 4"/></svg>Dashed = cross-link',
+    'Click a node to jump to its primary ring'
+  ],
+  secEcosystem: 'Data ecosystem',
+  secEcosystemSmall: 'the infrastructure layer under all six rings (Ring 6)',
+  ecoCards: [
+    {t:'Hardware layer',b:'Vaaka (cadence) · PaddleMate (force curves) · NK SpeedCoach (boat speed) · Garmin (HR) · <em>ePaddle</em>, the only device measuring force × timing across the whole crew'},
+    {t:'Software layer',b:'Coach dashboard · athlete progress app with stroke replay · AI trainer (gym plans from biggest weakness) · Group Mode with auto seat allocation · fan-facing data viz'},
+    {t:'Data layer',b:'Raw sensor → processed metrics → cross-team benchmarks → content narrative → standardized stats. More users → more data → better algorithms → more value → more users.'}
+  ],
+  secCompetitor: 'Competitor snapshot',
+  secCompetitorSmall: 'competitor comparison & unit economics',
+  compHeaders: ['Device','Hardware price','Data captured','Software','Crew synchronization'],
+  compRows: [
+    ['<b>Vaaka</b>','US$225','SPM, DPS (single IMU)','Free','—'],
+    ['<b>NK Sports</b>','¥1,586–3,559','GPS, SPM, DPS','US$100/yr','—'],
+    ['<b>PaddleMate</b>','€150–650','Force + SPM, DPS + GPS','€100–150/yr','—'],
+    ['hl|<b>ePaddle</b>','<b>¥299.9</b>','<b>Force curve + 9-axis form + speed/angle</b>','<b>¥588/yr (¥49/mo)</b>','<b>✓ crew sync + auto seat allocation</b>']
+  ],
+  compNote: 'Strategic gap: existing sensors measure either frequency (Vaaka, NK) or individual force (PaddleMate) — none measure cross-paddler synchronization in a multi-person boat. That gap is ePaddle\'s positioning.',
+  secQA: 'Hard questions',
+  secQASmall: '',
+  qa: [
+    {q:'Who feels the pain, who decides, who pays?',
+     a:'The coach is our ICP and first user — one coach runs 1–2 sessions a day with ~40 athletes, and beyond assigning different gym routines there is no real individualized training. The coach feels the pain and makes the decision; the paddler pays. That split is a channel, not a conflict: the coach dashboard is the hook, and one convinced coach opens ~40 paddler wallets by word-of-mouth. Our 500 in-person testers came exactly this way — 25 teams, several sharing coaches.'},
+    {q:'Sync needs the whole crew. Isn\'t your minimum sale 20 units?',
+     a:'No — two. Two sensors already let a coach run data-based seat selection, measuring individual power difference directly instead of proxying it with gym strength tests. Four (two per side) resolve each paddler\'s contribution to boat speed and direction, and value keeps scaling to full-boat. The motion is land-and-expand: a ¥600 wedge into a 22-seat fleet. On acquisition: ¥200–300 is the cost of reaching the whole team offline — per-team CAC, roughly ¥10–14 per paddler against ¥888 first-year value. Clubs manage bulk units under a team alias; individual purchases are self-managed.'},
+    {q:'How big is this really, after your own deductions?',
+     a:'Two motions, honestly split. In China and SEA, paddles are mostly club-owned, so the home beachhead is coach-led fleet adoption; outside China/SEA athletes own their paddles, retail. The season is real: Guangdong trains from after CNY through October, with the median team at 2.5 sessions/week, 1.5 hours each. Traction in raw numbers: 13 of the 15 coaches we pitched converted; LOIs signed with club entities; refundable deposits collected, with full payment deliberately held until we can manufacture at scale.'},
+    {q:'Why doesn\'t PaddleMate ship this in a firmware update?',
+     a:'They could ship sync; they can\'t ship our market. PaddleMate is built for North America, where 22-person dragon boat is niche. Their powder-metallurgy unit is glued permanently to the paddle, functionally destroying it and making it competition-illegal, and redesigning for an Asian community they can\'t reach is not a rational move. Our honest moat ranking: (1) the coach experience — 100+ devices synced live on one iPad; (2) the strongest offline channels in a sport that runs on word-of-mouth; (3) the compounding crew-paddling benchmark dataset — plus a non-destructive, competition-legal mount. A Shenzhen RoboMaster team could replicate the electronics in six months; the channel and the dataset they cannot.'},
+    {q:'If dragon boat grows, why does ePaddle capture it rather than the federations?',
+     a:'Because we\'re embedded with the people who run the water instead of waiting for a federation. Private side: partnerships with Zhuhai\'s largest private event operators, including 珠海意诚格物 (Zhuhai Yicheng Gewu), and dragon-boat digital equipment manufacturer 广东吕顺智能科技 (Guangdong Lvshun Intelligent Technology). Public side: Shenzhen\'s 大鹏新区创新局 (Dapeng New District Innovation Bureau). Policy support gives us three rivers covering the full product lifecycle: Hong Kong\'s Shing Mun River for training, Shenzhen Dapeng for large-scale QA, and Zhuhai Hengqin\'s Tianmu River for competition use.'},
+    {q:'Who on this team has shipped consumer hardware through tooling, certification, and a warranty season?',
+     a:'No one — yet; part of this raise hires that muscle. What is validated is that this team ships and wins under pressure. The project went from zero to a full team at the Hong Kong InnoX 2026 Winter Camp, where it won Best Project; it then reached the top 6 among 1,200+ startups at BEYOND Expo\'s Fund At First Pitch in Macao, where the judging panel — including Lakers star Metta World Peace and Crunchyroll founder Kun Gao — put a reference median valuation of US$8.5M on the company. This is why we only recruit members with proven competition experience. It takes a winner to understand winners.'},
+    {q:'What single number does HK$1M reach?',
+     a:'50 teams expanded from the 2-unit wedge to full-boat fleets, with their clubs renewing subscriptions after one complete season, roughly 10× unit sales within a year on a standard 22-seat crew basis. That one number proves the wedge-to-fleet expansion motion and answers seasonal churn. Exactly what the next round has to price.'}
+  ],
+  footer: '<b>Benchmarks referenced:</b><br>'+
+    '· SailGP — <a href="https://sailgp.com/news/25/2025-season-most-technologically-advanced-sailing-history/">125 sensors per F50</a>, <a href="https://sailgp.com/news/25/2025-season-most-technologically-advanced-sailing-history/">~35K data points/sec per boat</a> (fleet aggregate 240K+/sec on Oracle Cloud), <a href="https://www.sportsbusinessjournal.com/Articles/2025/12/10/sailgp-tops-200m-in-revenue-reaches-new-highs-in-attendance-viewership/">>$200M revenue in 2025</a> (~20× season 1), <a href="https://sailgp.com/news/24/sailgp-offer-livelinefx-graphics-sports-properties-rights-owners/">LiveLineFX Emmy Award-winning</a><br>'+
+    '· NBA — <a href="https://en.wikipedia.org/wiki/Player_tracking_(National_Basketball_Association)">SportVU optical tracking in all 30 arenas since 2013-14</a>; Second Spectrum since 2017-18, Jr. NBA funnel<br>'+
+    '· Foshan/Guangzhou — <a href="https://www.scmp.com/economy/china-economy/article/3357555/china-sees-surge-dragon-boat-tourism-foreign-interest-festival-grows">600%+ YoY growth in overseas Duanwu bookings</a> (Fliggy), hotel searches +210%<br>'+
+    '· IDBF ~50M global practitioners; first-hand paddle-manufacturer data',
+  infos: {
+0:'<b>Overview — six interlocking rings</b><br>The flywheel starts from smart hardware (ePaddle\'s sensor-equipped paddle), generates performance data, and flows through training, competition, content, audience and participation, creating self-reinforcing growth. The data ecosystem (hardware + software + data standards) is the infrastructure layer powering all six rings. Dashed arrows are cross-links: more participants feed more data; audience drives revenue; revenue funds more events.',
+1:'<b>Ring 1 · Training diagnosis (B2B core)</b> — Sensor → individual data → coach diagnosis → targeted plan → performance ↑ → more teams adopt → more data → better algorithms.<br>The problem it solves is the <b>Two-Body Problem</b>: 20+ paddlers per session, coaches relying on experience, athletes training by feeling — with ~30% power lost to invisible technical details in the land→water transition. ePaddle\'s answer: Personal Mode (live speed/power/angle, per-stroke replay, AI feedback, AI trainer) and Group Mode (crew sync view, auto seat allocation).<br><b>Stakeholders:</b> coaches, athletes, equipment manufacturers, schools/universities.<div class="case"><b>SailGP parallel:</b> each team\'s post-race Oracle dashboard for tactical review. <b>NBA parallel:</b> Second Spectrum tracking → coaching-staff analytics. This ring is the entry point.</div>',
+2:'<b>Ring 2 · Competitive parity</b> — Data democratization → weaker teams learn faster → gap narrows → championship turnover ↑ → more exciting races → audience ↑.<br><b>Stakeholders:</b> race federations (IDBF, CDBF), all teams, event organizers.<div class="case"><b>SailGP parallel:</b> open data policy — every team accesses every team\'s data; Season 5 had 12 teams (2× the inaugural 6), Season 6 expanded to 13. <b>NBA parallel:</b> salary cap + draft lottery create structural parity. Dragon boat\'s advantage: boats are already standardized (like F50s) — the missing piece is comparable data across teams.</div>',
+3:'<b>Ring 3 · Content & audience</b> — Data visualization feeding three distribution channels:<br>• <b>Social:</b> short-form data clips on Douyin/TikTok/Xiaohongshu (Foshan "dragon boat drifting" viral model + data overlay)<br>• <b>Broadcast:</b> TV/streaming with an AR data layer (SailGP LiveLine, NBA augmented telecasts)<br>• <b>Offline:</b> festival big screens, school open days, corporate team-building with live data walls<br><b>Stakeholders:</b> media/content creators, broadcasters, tourism boards, sponsors.<div class="case">SailGP\'s LiveLine makes invisible wind visible and won an Emmy. ePaddle\'s equivalent: making invisible individual effort visible.</div>',
+4:'<b>Ring 4 · Participation funnel</b> — Audience → interest → try dragon boat (club / corporate event) → join a team → train → generate data → back to Ring 1.<br>ePaddle\'s 5-month GTM proves the funnel: 1,000+ community athletes, 500+ tested in person incl. national-team reps (HK/MO/TW), bulk purchases from elite APAC clubs, 7 university partners, collaboration with disabled athletes, on $0 marketing spend.<br><b>Stakeholders:</b> universities, training academies, community clubs, new paddlers.<div class="case"><b>NBA parallel:</b> Jr. NBA, NBA 2K virtual funnel. <b>SailGP parallel:</b> Inspire youth program. Unique asset neither has: the Duanwu Festival cultural tie, millions attend annually.</div>',
+5:'<b>Ring 5 · Commercial revenue</b> — More events + participants + audience → multiple revenue streams → reinvestment.<br>• Hardware: ¥299.9/unit against a 9M-paddle annual replacement cycle and 50M practitioners<br>• Data SaaS: ¥588/yr (¥49/mo) → ¥888 first-year customer value, ~60.5% Y1 gross margin, 83% Y2+, CAC ¥200–300<br>• Sponsorship, cultural tourism (Foshan/Guangzhou: 600%+ YoY growth in overseas Duanwu bookings), media rights long-term<br><b>Stakeholders:</b> sponsors, local government/tourism boards, manufacturers, hospitality.<div class="case">SailGP revenue hit >$200M in 2025, ~20× season 1. The flywheel compounds.</div>',
+6:'<b>Ring 6 · Data ecosystem (infrastructure layer)</b> — More users → more data → better algorithms/benchmarks → more value → more users. Supports ALL other rings.<br><b>ePaddle tech:</b> 9-axis IMU for form + 4D strain gauge for power — full motion capture without sticking 17 sensors on the body. Server-orchestrated, instant Bluetooth, local logging, mobile replay.<br><b>Strategic gap:</b> Vaaka/NK measure frequency, PaddleMate measures individual force — none measure cross-paddler synchronization. That gap is the positioning and moat.<br><b>Expansion:</b> swimming (stroke-displacement wearables), rowing/all paddle sports (crew force-curve sync), skiing (pressure + angle).<div class="case">SailGP: 125 sensors per F50, ~35K data points/sec per boat on Oracle Cloud. NBA: optical tracking in all 30 arenas since 2013-14 (SportVU), Second Spectrum since 2017-18.</div>'
+  }
+}
+};
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let currentLang = 'zh';
+let currentRing = 0;
+const RING_COLORS = {1:'var(--r1)',2:'var(--r2)',3:'var(--r3)',4:'var(--r4)',5:'var(--r5)',6:'var(--r6)'};
+
+// ═══════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════
+function renderAll(lang) {
+  const d = I18N[lang];
+
+  // Header
+  document.getElementById('hdr-title').textContent = d.pageTitle;
+  document.getElementById('hdr-sub').textContent = d.headerSub;
+  document.getElementById('hdr-src').innerHTML = d.headerSrc;
+  document.title = d.pageTitle;
+
+  // Stats
+  document.getElementById('stats').innerHTML = d.stats.map(s =>
+    `<div class="stat"><b>${s.v}</b><span>${s.l}</span></div>`
+  ).join('');
+
+  // Section titles
+  document.getElementById('sec-fw-title').innerHTML = `${d.secFlywheel} <small>${d.secFlywheelSmall}</small>`;
+  document.getElementById('sec-eco-title').innerHTML = `${d.secEcosystem} <small>${d.secEcosystemSmall}</small>`;
+  document.getElementById('sec-comp-title').innerHTML = `${d.secCompetitor} <small>${d.secCompetitorSmall}</small>`;
+
+  // Center ring card labels
+  d.ringBtns.forEach((rb, i) => {
+    const card = document.querySelector(`.fw-card[data-r="${i}"] .fc-t`);
+    if (!card) return;
+    card.textContent = lang === 'zh' ? rb.zh : rb.en;
+    card.setAttribute('font-size', lang === 'zh' ? '11' : '10.5');
+  });
+
+  // SVG nodes
+  d.svgNodes.forEach((node, i) => {
+    const g = document.getElementById('n'+i);
+    const texts = g.querySelectorAll('text');
+    texts[0].textContent = node.p;
+    texts[1].textContent = node.s;
+    // adjust font size for Chinese (slightly smaller for readability)
+    texts[0].setAttribute('font-size', lang==='zh' ? '12.5' : '13');
+    texts[1].setAttribute('font-size', lang==='zh' ? '10.5' : '10.5');
+  });
+
+  // Legend
+  document.getElementById('legend').innerHTML = d.legend.map(l => `<span>${l}</span>`).join('');
+
+  // Eco cards
+  document.getElementById('ecoCards').innerHTML = d.ecoCards.map(c =>
+    `<div class="eco-card"><b>${c.t}</b><span>${c.b}</span></div>`
+  ).join('');
+
+  // Competitor table
+  document.getElementById('compTable').innerHTML = `<table>
+    <thead><tr>${d.compHeaders.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${d.compRows.map((r,i) => {
+      const isHL = r[0].startsWith('hl|');
+      const cells = isHL ? [r[0].slice(3), ...r.slice(1)] : r;
+      const cls = (isHL ? ' class="hl"' : '') + (i===d.compRows.length-1 ? '' : '');
+      const clsAttr = isHL ? ' class="hl"' : '';
+      return `<tr${clsAttr}>${cells.map((c,j) => `<td${j===0||j===1||j===3?' class="num"':''}>${c}</td>`).join('')}</tr>`;
+    }).join('')}</tbody>
+  </table>`;
+  document.getElementById('compNote').textContent = d.compNote;
+
+  // Hard questions
+  document.getElementById('sec-qa-title').innerHTML = `${d.secQA} <small>${d.secQASmall}</small>`;
+  document.getElementById('qaList').innerHTML = d.qa.map((x, i) =>
+    `<div class="qa-item"><b class="q">Q${i+1} — ${x.q}</b>${x.a}</div>`
+  ).join('');
+
+  document.getElementById('footer').innerHTML = d.footer;
+
+  // SVG desc
+  document.getElementById('fw-title').textContent = d.fwTitle;
+  document.getElementById('fw-desc').textContent = d.fwDesc;
+
+  // Re-render current ring in the new language
+  showRing(currentRing);
+}
+
+// ═══════════════════════════════════════
+// RING INTERACTION
+// ═══════════════════════════════════════
+function ringColor(i) { return i ? RING_COLORS[i] : 'var(--border-strong)'; }
+
+function showRing(r) {
+  const d = I18N[currentLang];
+  currentRing = r;
+
+  // carousel header: title + active dot + accent color
+  const rb = d.ringBtns[r];
+  const name = currentLang === 'zh' ? rb.zh : rb.en;
+  const sub = currentLang === 'zh' ? rb.en : '';
+  document.getElementById('infoTitle').innerHTML =
+    `${rb.n ? `<span class="rn">${rb.n}</span>` : ''}${name}${sub ? `<span class="re">${sub}</span>` : ''}`;
+  document.getElementById('infoPanel').style.setProperty('--rc', ringColor(r));
+
+  // body with a light fade on swap
+  const info = document.getElementById('info');
+  info.innerHTML = d.infos[r];
+  if (info.animate) info.animate([{opacity:.25},{opacity:1}], {duration:220, easing:'ease-out'});
+
+  // diagram: nodes + edges
+  document.querySelectorAll('.node-main').forEach(n => {
+    const active = r === 0 || n.dataset.rings.split(',').map(Number).includes(r);
+    n.classList.toggle('dim', !active);
+    n.querySelector('rect').setAttribute('stroke', (r && active) ? RING_COLORS[r] : 'var(--border-strong)');
+    n.querySelector('rect').setAttribute('stroke-width', (r && active) ? '1.6' : '1');
+  });
+  document.querySelectorAll('.edge').forEach(e => {
+    const active = r === 0 || e.dataset.rings.split(',').map(Number).includes(r);
+    e.classList.toggle('dim', !active);
+    e.setAttribute('stroke', (r && active) ? RING_COLORS[r] : 'var(--edge)');
+    e.setAttribute('marker-end', (r && active) ? `url(#arr${r})` : 'url(#arr)');
+  });
+  // svg center ring cards
+  document.querySelectorAll('.fw-card').forEach(c => {
+    const i = +c.dataset.r;
+    const active = i === r;
+    c.classList.toggle('dim', !active && r !== 0);
+    const bg = c.querySelector('.fc-bg');
+    bg.setAttribute('fill', (active && i) ? `color-mix(in srgb,${ringColor(i)} 12%,var(--surface-1))` : 'var(--surface-1)');
+    bg.setAttribute('stroke-width', active ? '1.8' : '1');
+  });
+}
+
+function stepRing(dir) { showRing((currentRing + dir + 7) % 7); }
+
+// ═══════════════════════════════════════
+// AUTO TOUR
+// ═══════════════════════════════════════
+const TOUR_INTERVAL = 8000;
+let tourTimer = null;
+function stopTour() {
+  if (!tourTimer) return;
+  clearInterval(tourTimer);
+  tourTimer = null;
+  const b = document.getElementById('tourBtn');
+  b.textContent = '▶';
+  b.classList.remove('on');
+}
+function toggleTour() {
+  if (tourTimer) { stopTour(); return; }
+  stepRing(1);
+  tourTimer = setInterval(() => stepRing(1), TOUR_INTERVAL);
+  const b = document.getElementById('tourBtn');
+  b.textContent = '⏸';
+  b.classList.add('on');
+}
+
+// one-time bindings on static elements (manual navigation stops the tour)
+document.getElementById('tourBtn').addEventListener('click', toggleTour);
+document.getElementById('navPrev').addEventListener('click', () => { stopTour(); stepRing(-1); });
+document.getElementById('navNext').addEventListener('click', () => { stopTour(); stepRing(1); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') { stopTour(); stepRing(-1); }
+  else if (e.key === 'ArrowRight') { stopTour(); stepRing(1); }
+});
+document.querySelectorAll('.node-main').forEach(n => {
+  n.addEventListener('click', () => { stopTour(); showRing(n.dataset.rings.split(',').map(Number)[0]); });
+});
+document.querySelectorAll('.fw-card').forEach(c => {
+  c.addEventListener('click', (e) => { e.stopPropagation(); stopTour(); showRing(+c.dataset.r); });
+});
+
+// ═══════════════════════════════════════
+// LANGUAGE SWITCH
+// ═══════════════════════════════════════
+function setLanguage(lang) {
+  if (lang === currentLang) return;
+  currentLang = lang;
+  document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : 'en';
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  renderAll(lang);
+  try { localStorage.setItem('ePaddle-lang', lang); } catch(e) {}
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+document.querySelectorAll('.lang-btn').forEach(b => {
+  b.addEventListener('click', () => setLanguage(b.dataset.lang));
+});
+
+// restore preference — render directly: setLanguage() early-returns when lang === currentLang
+let initLang = 'zh';
+try { initLang = localStorage.getItem('ePaddle-lang') || 'zh'; } catch(e) {}
+currentLang = initLang;
+document.documentElement.lang = initLang === 'zh' ? 'zh-Hans' : 'en';
+document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === initLang));
+renderAll(initLang);
+</script>
+</body>
+</html>
