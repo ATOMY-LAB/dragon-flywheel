@@ -63,7 +63,7 @@ h2 small{font-weight:400;color:var(--text-muted);font-size:12px;margin-left:8px}
 
 /* info panel */
 .info-panel{font-size:13.5px;line-height:1.65;color:var(--text-secondary);min-height:96px;
-  margin:0 0 14px;padding:14px 18px;background:var(--surface-1);border-radius:12px;
+  margin:14px 0 0;padding:14px 18px;background:var(--surface-1);border-radius:12px;
   border:1px solid var(--border);border-left:3px solid var(--rc,var(--border-strong))}
 .info-panel b{color:var(--text-primary);font-weight:600}
 .info-panel .case{font-size:12.5px;color:var(--text-muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--grid)}
@@ -144,16 +144,6 @@ footer a{color:var(--text-muted)}
 
 <section>
   <h2 id="sec-fw-title"></h2>
-  <div class="info-panel" id="infoPanel">
-    <div class="info-head">
-      <button class="nav-btn" id="navPrev" aria-label="Previous ring">‹</button>
-      <div class="info-title" id="infoTitle"></div>
-      <button class="nav-btn" id="tourBtn" aria-label="Auto tour">▶</button>
-      <button class="nav-btn" id="navNext" aria-label="Next ring">›</button>
-    </div>
-    <div class="info-body" id="info"></div>
-  </div>
-
   <svg class="fw-svg" viewBox="0 0 680 470" role="img" aria-labelledby="fw-title fw-desc">
     <title id="fw-title">ePaddle Dragon Boat Data Flywheel</title>
     <desc id="fw-desc"></desc>
@@ -273,6 +263,16 @@ footer a{color:var(--text-muted)}
     </g>
   </svg>
 
+  <div class="info-panel" id="infoPanel">
+    <div class="info-head">
+      <button class="nav-btn" id="navPrev" aria-label="Previous ring">‹</button>
+      <div class="info-title" id="infoTitle"></div>
+      <button class="nav-btn" id="tourBtn" aria-label="Auto tour">▶</button>
+      <button class="nav-btn" id="navNext" aria-label="Next ring">›</button>
+    </div>
+    <div class="info-body" id="info"></div>
+  </div>
+
   <div class="legend-row" id="legend"></div>
 </section>
 
@@ -344,9 +344,9 @@ zh: {
   secEcosystem: '数据生态',
   secEcosystemSmall: '支撑全部六环的基础设施层（第六环）',
   ecoCards: [
-    {t:'硬件层',b:'Vaaka（桨频）· PaddleMate（力曲线）· NK SpeedCoach（船速）· Garmin（心率）· <em>ePaddle</em>，唯一测量全船队员发力×时机的设备'},
-    {t:'软件层',b:'教练数据看板 · 运动员进度App含划桨回放 · AI教练（从最大弱点生成训练方案）· 团队模式含自动座位分配 · 面向粉丝的数据可视化'},
-    {t:'数据层',b:'原始传感器数据 → 处理后指标 → 跨队基准 → 内容叙事 → 标准化统计数据。更多用户 → 更多数据 → 更好算法 → 更高价值 → 更多用户。'}
+    {t:'硬件',b:'Vaaka（桨频）· PaddleMate（力曲线）· NK SpeedCoach（船速）· Garmin（心率）· <em>ePaddle</em>，唯一测量全船队员发力×时机的设备'},
+    {t:'软件',b:'教练数据看板 · 运动员进度App含划桨回放 · AI教练（从最大弱点生成训练方案）· 团队模式含自动座位分配 · 面向粉丝的数据可视化'},
+    {t:'数据',b:'原始传感器数据 → 处理后指标 → 跨队基准 → 内容叙事 → 标准化统计数据。更多用户 → 更多数据 → 更好算法 → 更高价值 → 更多用户。'}
   ],
   secCompetitor: '竞品一览',
   secCompetitorSmall: '竞品对比与单位经济学',
@@ -383,12 +383,12 @@ zh: {
     '· IDBF 全球龙舟参与者约5,000万；桨叶制造商一手数据',
   infos: {
 0:'<b>总览：六大环环相扣</b><br>飞轮从智能硬件（ePaddle 传感器桨）起步，产生运动数据，依次流经训练、竞赛、内容、观众与参与，形成自我强化的增长循环。数据生态（硬件 + 软件 + 数据标准）是驱动全部六环的基础设施层。虚线箭头为跨链连接：更多参与者反哺更多数据；观众推动收入；收入资助更多赛事。',
-1:'<b>第一环 · 训练诊断（B2B核心）</b> — 传感器 → 个人数据 → 教练诊断 → 针对性方案 → 成绩提升 → 更多队伍采用 → 更多数据 → 更好算法。<br>解决的核心问题是<b>二体问题</b>：每次训练20+划手，教练凭经验判断，运动员凭感觉训练，陆→水过渡中约30%功率损失于不可见的技术细节。ePaddle 的答案：个人模式（实时速度/功率/角度、逐桨回放、AI反馈、AI教练）和团队模式（全员同步视图、自动座位分配）。<br><b>利益相关方：</b>教练、运动员、装备制造商、学校/高校。<div class="case"><b>SailGP 对照：</b>每队赛后使用 Oracle 数据看板进行战术复盘。<b>NBA 对照：</b>Second Spectrum 追踪 → 教练组分析。此环为切入点。</div>',
-2:'<b>第二环 · 竞技均势</b> — 数据民主化 → 弱队学得更快 → 差距缩小 → 冠军更替率↑ → 赛事更精彩 → 观众↑。<br><b>利益相关方：</b>赛事联合会（IDBF, CDBF）、所有队伍、赛事组织方。<div class="case"><b>SailGP 对照：</b>开放数据政策：每队可查看所有队伍的数据；第5赛季共12支队伍（首届6支的2倍），第6赛季扩至13支。<b>NBA 对照：</b>工资帽 + 选秀抽签创造结构性均势。龙舟的优势：船体已标准化（如同F50），缺失的是跨队可比数据。</div>',
-3:'<b>第三环 · 内容与观众</b> — 数据可视化赋能三条分发渠道：<br>• <b>社交：</b>抖音/TikTok/小红书上的短数据视频（佛山"龙舟漂移"病毒传播模式 + 数据叠加）<br>• <b>直播：</b>电视/流媒体配AR数据层（SailGP LiveLine、NBA增强直播）<br>• <b>线下：</b>节日大屏、校园开放日、企业团建配实时数据墙<br><b>利益相关方：</b>媒体/内容创作者、转播商、旅游局、赞助商。<div class="case">SailGP 的 LiveLine 让不可见的风变得可见，并获 Emmy 奖。ePaddle 的对应：让不可见的个人发力变得可见。</div>',
-4:'<b>第四环 · 参与漏斗</b> — 观众 → 兴趣 → 尝试龙舟（俱乐部/企业活动）→ 加入队伍 → 训练 → 产生数据 → 回到第一环。<br>ePaddle 5个月上市验证了漏斗：1,000+ 社区运动员、500+ 实地测试含国家队代表（港/澳/台）、亚太精英俱乐部批量采购、7所高校合作伙伴、与残障运动员合作，零营销支出。<br><b>利益相关方：</b>高校、培训学院、社区俱乐部、新划手。<div class="case"><b>NBA 对照：</b>Jr. NBA、NBA 2K 虚拟漏斗。<b>SailGP 对照：</b>Inspire 青少年计划。二者不具备的独特资产：端午节文化纽带，每年数百万人现场观看。</div>',
-5:'<b>第五环 · 商业收入</b> — 更多赛事 + 参与者 + 观众 → 多元收入流 → 再投资。<br>• 硬件：¥299.9/支，对标900万支年桨叶更换周期和5,000万参与者<br>• 数据 SaaS：¥588/年（¥49/月）→ 首年客户价值 ¥888，毛利率 ~60.5% Y1，83% Y2+，获客成本 ¥200–300<br>• 赞助、文旅（佛山/广州：端午入境预订同比+600%以上）、媒体权益长期收入<br><b>利益相关方：</b>赞助商、地方政府/旅游局、制造商、酒店业。<div class="case">SailGP 2025年收入超$200M，约为第一赛季的20倍，飞轮复利效应。</div>',
-6:'<b>第六环 · 数据生态（基础设施层）</b> — 更多用户 → 更多数据 → 更好算法/基准 → 更高价值 → 更多用户。支撑全部其他环。<br><b>ePaddle 技术：</b>9轴IMU测姿态 + 4D应变片测功率，无需在身体贴17个传感器即可实现全运动捕捉。服务器编排、蓝牙即时连接、本地记录、手机回放。<br><b>战略空白：</b>Vaaka/NK 测频率，PaddleMate 测个人发力，无一测量队员间同步。这一定位空白即护城河。<br><b>扩展：</b>游泳（划臂位移穿戴）、赛艇/全桨类（全员力曲线同步）、滑雪（压力+角度）。<div class="case">SailGP：每艘F50 125个传感器，每船每秒~35K数据点运行于 Oracle Cloud。NBA：2013-14赛季起光学追踪覆盖全部球馆，Second Spectrum 自2017-18赛季起为官方供应商。</div>'
+1:'传感器 → 个人数据 → 教练诊断 → 针对性方案 → 成绩提升 → 更多队伍采用 → 更多数据 → 更好算法。<br>解决的核心问题是<b>二体问题</b>：每次训练20+划手，教练凭经验判断，运动员凭感觉训练，陆→水过渡中约30%功率损失于不可见的技术细节。ePaddle 的答案：个人模式（实时速度/功率/角度、逐桨回放、AI反馈、AI教练）和团队模式（全员同步视图、自动座位分配）。<br><b>利益相关方：</b>教练、运动员、装备制造商、学校/高校。<div class="case"><b>SailGP 对照：</b>每队赛后使用 Oracle 数据看板进行战术复盘。<b>NBA 对照：</b>Second Spectrum 追踪 → 教练组分析。此环为切入点。</div>',
+2:'数据民主化 → 弱队学得更快 → 差距缩小 → 冠军更替率↑ → 赛事更精彩 → 观众↑。<br><b>利益相关方：</b>赛事联合会（IDBF, CDBF）、所有队伍、赛事组织方。<div class="case"><b>SailGP 对照：</b>开放数据政策：每队可查看所有队伍的数据；第5赛季共12支队伍（首届6支的2倍），第6赛季扩至13支。<b>NBA 对照：</b>工资帽 + 选秀抽签创造结构性均势。龙舟的优势：船体已标准化（如同F50），缺失的是跨队可比数据。</div>',
+3:'数据可视化赋能三条分发渠道：<br>• <b>社交：</b>抖音/TikTok/小红书上的短数据视频（佛山"龙舟漂移"病毒传播模式 + 数据叠加）<br>• <b>直播：</b>电视/流媒体配AR数据层（SailGP LiveLine、NBA增强直播）<br>• <b>线下：</b>节日大屏、校园开放日、企业团建配实时数据墙<br><b>利益相关方：</b>媒体/内容创作者、转播商、旅游局、赞助商。<div class="case">SailGP 的 LiveLine 让不可见的风变得可见，并获 Emmy 奖。ePaddle 的对应：让不可见的个人发力变得可见。</div>',
+4:'观众 → 兴趣 → 尝试龙舟（俱乐部/企业活动）→ 加入队伍 → 训练 → 产生数据 → 回到第一环。<br>ePaddle 5个月上市验证了漏斗：1,000+ 社区运动员、500+ 实地测试含国家队代表（港/澳/台）、亚太精英俱乐部批量采购、7所高校合作伙伴、与残障运动员合作，零营销支出。<br><b>利益相关方：</b>高校、培训学院、社区俱乐部、新划手。<div class="case"><b>NBA 对照：</b>Jr. NBA、NBA 2K 虚拟漏斗。<b>SailGP 对照：</b>Inspire 青少年计划。二者不具备的独特资产：端午节文化纽带，每年数百万人现场观看。</div>',
+5:'更多赛事 + 参与者 + 观众 → 多元收入流 → 再投资。<br>• 硬件：¥299.9/支，对标900万支年桨叶更换周期和5,000万参与者<br>• 数据 SaaS：¥588/年（¥49/月）→ 首年客户价值 ¥888，毛利率 ~60.5% Y1，83% Y2+，获客成本 ¥200–300<br>• 赞助、文旅（佛山/广州：端午入境预订同比+600%以上）、媒体权益长期收入<br><b>利益相关方：</b>赞助商、地方政府/旅游局、制造商、酒店业。<div class="case">SailGP 2025年收入超$200M，约为第一赛季的20倍，飞轮复利效应。</div>',
+6:'更多用户 → 更多数据 → 更好算法/基准 → 更高价值 → 更多用户。支撑全部其他环。<br><b>ePaddle 技术：</b>9轴IMU测姿态 + 4D应变片测功率，无需在身体贴17个传感器即可实现全运动捕捉。服务器编排、蓝牙即时连接、本地记录、手机回放。<br><b>战略空白：</b>Vaaka/NK 测频率，PaddleMate 测个人发力，无一测量队员间同步。这一定位空白即护城河。<br><b>扩展：</b>游泳（划臂位移穿戴）、赛艇/全桨类（全员力曲线同步）、滑雪（压力+角度）。<div class="case">SailGP：每艘F50 125个传感器，每船每秒~35K数据点运行于 Oracle Cloud。NBA：2013-14赛季起光学追踪覆盖全部球馆，Second Spectrum 自2017-18赛季起为官方供应商。</div>'
   }
 },
 en: {
@@ -414,7 +414,7 @@ en: {
     {n:'R6',zh:'数据生态',en:'Data ecosystem'}
   ],
   secFlywheel: 'The flywheel',
-  secFlywheelSmall: 'flip through rings with ‹ › or ← → keys · ▶ runs an auto tour · click any node or card to jump',
+  secFlywheelSmall: '',
   svgNodes: [
     {p:'ePaddle hardware',s:'9-axis IMU + strain gauge'},
     {p:'Performance data',s:'Power · angle · sync'},
@@ -434,9 +434,9 @@ en: {
   secEcosystem: 'Data ecosystem',
   secEcosystemSmall: 'the infrastructure layer under all six rings (Ring 6)',
   ecoCards: [
-    {t:'Hardware layer',b:'Vaaka (cadence) · PaddleMate (force curves) · NK SpeedCoach (boat speed) · Garmin (HR) · <em>ePaddle</em>, the only device measuring force × timing across the whole crew'},
-    {t:'Software layer',b:'Coach dashboard · athlete progress app with stroke replay · AI trainer (gym plans from biggest weakness) · Group Mode with auto seat allocation · fan-facing data viz'},
-    {t:'Data layer',b:'Raw sensor → processed metrics → cross-team benchmarks → content narrative → standardized stats. More users → more data → better algorithms → more value → more users.'}
+    {t:'Hardware',b:'Vaaka (cadence) · PaddleMate (force curves) · NK SpeedCoach (boat speed) · Garmin (HR) · <em>ePaddle</em>, the only device measuring force × timing across the whole crew'},
+    {t:'Software',b:'Coach dashboard · athlete progress app with stroke replay · AI trainer (gym plans from biggest weakness) · Group Mode with auto seat allocation · fan-facing data viz'},
+    {t:'Data',b:'Raw sensor → processed metrics → cross-team benchmarks → content narrative → standardized stats. More users → more data → better algorithms → more value → more users.'}
   ],
   secCompetitor: 'Competitor snapshot',
   secCompetitorSmall: 'competitor comparison & unit economics',
@@ -473,12 +473,12 @@ en: {
     '· IDBF ~50M global practitioners; first-hand paddle-manufacturer data',
   infos: {
 0:'<b>Overview — six interlocking rings</b><br>The flywheel starts from smart hardware (ePaddle\'s sensor-equipped paddle), generates performance data, and flows through training, competition, content, audience and participation, creating self-reinforcing growth. The data ecosystem (hardware + software + data standards) is the infrastructure layer powering all six rings. Dashed arrows are cross-links: more participants feed more data; audience drives revenue; revenue funds more events.',
-1:'<b>Ring 1 · Training diagnosis (B2B core)</b> — Sensor → individual data → coach diagnosis → targeted plan → performance ↑ → more teams adopt → more data → better algorithms.<br>The problem it solves is the <b>Two-Body Problem</b>: 20+ paddlers per session, coaches relying on experience, athletes training by feeling — with ~30% power lost to invisible technical details in the land→water transition. ePaddle\'s answer: Personal Mode (live speed/power/angle, per-stroke replay, AI feedback, AI trainer) and Group Mode (crew sync view, auto seat allocation).<br><b>Stakeholders:</b> coaches, athletes, equipment manufacturers, schools/universities.<div class="case"><b>SailGP parallel:</b> each team\'s post-race Oracle dashboard for tactical review. <b>NBA parallel:</b> Second Spectrum tracking → coaching-staff analytics. This ring is the entry point.</div>',
-2:'<b>Ring 2 · Competitive parity</b> — Data democratization → weaker teams learn faster → gap narrows → championship turnover ↑ → more exciting races → audience ↑.<br><b>Stakeholders:</b> race federations (IDBF, CDBF), all teams, event organizers.<div class="case"><b>SailGP parallel:</b> open data policy — every team accesses every team\'s data; Season 5 had 12 teams (2× the inaugural 6), Season 6 expanded to 13. <b>NBA parallel:</b> salary cap + draft lottery create structural parity. Dragon boat\'s advantage: boats are already standardized (like F50s) — the missing piece is comparable data across teams.</div>',
-3:'<b>Ring 3 · Content & audience</b> — Data visualization feeding three distribution channels:<br>• <b>Social:</b> short-form data clips on Douyin/TikTok/Xiaohongshu (Foshan "dragon boat drifting" viral model + data overlay)<br>• <b>Broadcast:</b> TV/streaming with an AR data layer (SailGP LiveLine, NBA augmented telecasts)<br>• <b>Offline:</b> festival big screens, school open days, corporate team-building with live data walls<br><b>Stakeholders:</b> media/content creators, broadcasters, tourism boards, sponsors.<div class="case">SailGP\'s LiveLine makes invisible wind visible and won an Emmy. ePaddle\'s equivalent: making invisible individual effort visible.</div>',
-4:'<b>Ring 4 · Participation funnel</b> — Audience → interest → try dragon boat (club / corporate event) → join a team → train → generate data → back to Ring 1.<br>ePaddle\'s 5-month GTM proves the funnel: 1,000+ community athletes, 500+ tested in person incl. national-team reps (HK/MO/TW), bulk purchases from elite APAC clubs, 7 university partners, collaboration with disabled athletes, on $0 marketing spend.<br><b>Stakeholders:</b> universities, training academies, community clubs, new paddlers.<div class="case"><b>NBA parallel:</b> Jr. NBA, NBA 2K virtual funnel. <b>SailGP parallel:</b> Inspire youth program. Unique asset neither has: the Duanwu Festival cultural tie, millions attend annually.</div>',
-5:'<b>Ring 5 · Commercial revenue</b> — More events + participants + audience → multiple revenue streams → reinvestment.<br>• Hardware: ¥299.9/unit against a 9M-paddle annual replacement cycle and 50M practitioners<br>• Data SaaS: ¥588/yr (¥49/mo) → ¥888 first-year customer value, ~60.5% Y1 gross margin, 83% Y2+, CAC ¥200–300<br>• Sponsorship, cultural tourism (Foshan/Guangzhou: 600%+ YoY growth in overseas Duanwu bookings), media rights long-term<br><b>Stakeholders:</b> sponsors, local government/tourism boards, manufacturers, hospitality.<div class="case">SailGP revenue hit >$200M in 2025, ~20× season 1. The flywheel compounds.</div>',
-6:'<b>Ring 6 · Data ecosystem (infrastructure layer)</b> — More users → more data → better algorithms/benchmarks → more value → more users. Supports ALL other rings.<br><b>ePaddle tech:</b> 9-axis IMU for form + 4D strain gauge for power — full motion capture without sticking 17 sensors on the body. Server-orchestrated, instant Bluetooth, local logging, mobile replay.<br><b>Strategic gap:</b> Vaaka/NK measure frequency, PaddleMate measures individual force — none measure cross-paddler synchronization. That gap is the positioning and moat.<br><b>Expansion:</b> swimming (stroke-displacement wearables), rowing/all paddle sports (crew force-curve sync), skiing (pressure + angle).<div class="case">SailGP: 125 sensors per F50, ~35K data points/sec per boat on Oracle Cloud. NBA: optical tracking in all 30 arenas since 2013-14 (SportVU), Second Spectrum since 2017-18.</div>'
+1:'Sensor → individual data → coach diagnosis → targeted plan → performance ↑ → more teams adopt → more data → better algorithms.<br>The problem it solves is the <b>Two-Body Problem</b>: 20+ paddlers per session, coaches relying on experience, athletes training by feeling — with ~30% power lost to invisible technical details in the land→water transition. ePaddle\'s answer: Personal Mode (live speed/power/angle, per-stroke replay, AI feedback, AI trainer) and Group Mode (crew sync view, auto seat allocation).<br><b>Stakeholders:</b> coaches, athletes, equipment manufacturers, schools/universities.<div class="case"><b>SailGP parallel:</b> each team\'s post-race Oracle dashboard for tactical review. <b>NBA parallel:</b> Second Spectrum tracking → coaching-staff analytics. This ring is the entry point.</div>',
+2:'Data democratization → weaker teams learn faster → gap narrows → championship turnover ↑ → more exciting races → audience ↑.<br><b>Stakeholders:</b> race federations (IDBF, CDBF), all teams, event organizers.<div class="case"><b>SailGP parallel:</b> open data policy — every team accesses every team\'s data; Season 5 had 12 teams (2× the inaugural 6), Season 6 expanded to 13. <b>NBA parallel:</b> salary cap + draft lottery create structural parity. Dragon boat\'s advantage: boats are already standardized (like F50s) — the missing piece is comparable data across teams.</div>',
+3:'Data visualization feeding three distribution channels:<br>• <b>Social:</b> short-form data clips on Douyin/TikTok/Xiaohongshu (Foshan "dragon boat drifting" viral model + data overlay)<br>• <b>Broadcast:</b> TV/streaming with an AR data layer (SailGP LiveLine, NBA augmented telecasts)<br>• <b>Offline:</b> festival big screens, school open days, corporate team-building with live data walls<br><b>Stakeholders:</b> media/content creators, broadcasters, tourism boards, sponsors.<div class="case">SailGP\'s LiveLine makes invisible wind visible and won an Emmy. ePaddle\'s equivalent: making invisible individual effort visible.</div>',
+4:'Audience → interest → try dragon boat (club / corporate event) → join a team → train → generate data → back to Ring 1.<br>ePaddle\'s 5-month GTM proves the funnel: 1,000+ community athletes, 500+ tested in person incl. national-team reps (HK/MO/TW), bulk purchases from elite APAC clubs, 7 university partners, collaboration with disabled athletes, on $0 marketing spend.<br><b>Stakeholders:</b> universities, training academies, community clubs, new paddlers.<div class="case"><b>NBA parallel:</b> Jr. NBA, NBA 2K virtual funnel. <b>SailGP parallel:</b> Inspire youth program. Unique asset neither has: the Duanwu Festival cultural tie, millions attend annually.</div>',
+5:'More events + participants + audience → multiple revenue streams → reinvestment.<br>• Hardware: ¥299.9/unit against a 9M-paddle annual replacement cycle and 50M practitioners<br>• Data SaaS: ¥588/yr (¥49/mo) → ¥888 first-year customer value, ~60.5% Y1 gross margin, 83% Y2+, CAC ¥200–300<br>• Sponsorship, cultural tourism (Foshan/Guangzhou: 600%+ YoY growth in overseas Duanwu bookings), media rights long-term<br><b>Stakeholders:</b> sponsors, local government/tourism boards, manufacturers, hospitality.<div class="case">SailGP revenue hit >$200M in 2025, ~20× season 1. The flywheel compounds.</div>',
+6:'More users → more data → better algorithms/benchmarks → more value → more users. Supports ALL other rings.<br><b>ePaddle tech:</b> 9-axis IMU for form + 4D strain gauge for power — full motion capture without sticking 17 sensors on the body. Server-orchestrated, instant Bluetooth, local logging, mobile replay.<br><b>Strategic gap:</b> Vaaka/NK measure frequency, PaddleMate measures individual force — none measure cross-paddler synchronization. That gap is the positioning and moat.<br><b>Expansion:</b> swimming (stroke-displacement wearables), rowing/all paddle sports (crew force-curve sync), skiing (pressure + angle).<div class="case">SailGP: 125 sensors per F50, ~35K data points/sec per boat on Oracle Cloud. NBA: optical tracking in all 30 arenas since 2013-14 (SportVU), Second Spectrum since 2017-18.</div>'
   }
 }
 };
@@ -508,7 +508,7 @@ function renderAll(lang) {
   ).join('');
 
   // Section titles
-  document.getElementById('sec-fw-title').innerHTML = `${d.secFlywheel} <small>${d.secFlywheelSmall}</small>`;
+  document.getElementById('sec-fw-title').innerHTML = d.secFlywheelSmall ? `${d.secFlywheel} <small>${d.secFlywheelSmall}</small>` : d.secFlywheel;
   document.getElementById('sec-eco-title').innerHTML = `${d.secEcosystem} <small>${d.secEcosystemSmall}</small>`;
   document.getElementById('sec-comp-title').innerHTML = `${d.secCompetitor} <small>${d.secCompetitorSmall}</small>`;
 
@@ -619,7 +619,7 @@ function stepRing(dir) { showRing((currentRing + dir + 7) % 7); }
 // ═══════════════════════════════════════
 // AUTO TOUR
 // ═══════════════════════════════════════
-const TOUR_INTERVAL = 8000;
+const TOUR_INTERVAL = 4000;
 let tourTimer = null;
 function stopTour() {
   if (!tourTimer) return;
